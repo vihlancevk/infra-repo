@@ -1,0 +1,10 @@
+---
+- name: Deploy Python App
+  hosts: python_servers
+  become_user: admin
+  vars:
+    artifact_path: ""
+    deploy_dir: "/home/admin/python-app"
+    venv_dir: "/home/admin/python-app/.venv"
+  roles:
+    - role: python_app

@@ -1,0 +1,38 @@
+---
+- name: Create deployment directory
+  file:
+    path: "{{ deploy_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy artifact to remote server
+  copy:
+    src: "{{ artifact_path }}"
+    dest: "{{ deploy_dir }}/{{ artifact_path | basename }}"
+    mode: '0644'
+
+- name: Extract artifact
+  unarchive:
+    src: "{{ deploy_dir }}/{{ artifact_path | basename }}"
+    dest: "{{ deploy_dir }}"
+    remote_src: yes
+
+- name: Setup virtual environment
+  shell: |
+    python3 -m venv {{ venv_dir }}
+  args:
+    chdir: "{{ deploy_dir }}"
+
+- name: Install dependencies
+  shell: |
+    . {{ venv_dir }}/bin/activate
+    pip install -r requirements.txt
+  args:
+    chdir: "{{ deploy_dir }}"
+
+- name: Run application in background
+  shell: |
+    . {{ venv_dir }}/bin/activate
+    nohup ./run.sh &
+  args:
+    chdir: "{{ deploy_dir }}"
